@@ -400,7 +400,7 @@ const ListingDetailPage = () => {
 										listing.images[currentImageIndex]
 									}
 									alt={listing.title}
-									className="w-full h-64 sm:h-96 object-cover"
+									className="w-full h-96 object-contain"
 									onError={(e) => {
 										const target = e.currentTarget;
 										target.src =
