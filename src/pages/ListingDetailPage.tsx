@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { listings, supabase } from "../lib/supabase";
 import NetworkErrorHandler from "../components/NetworkErrorHandler";
+import { forceReconnect } from "../lib/supabase-reconnect";
 
 const ListingDetailPage = () => {
 	const { id } = useParams();
@@ -38,6 +39,8 @@ const ListingDetailPage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [networkError, setNetworkError] = useState<any>(null);
+	const [loadAttempts, setLoadAttempts] = useState(0);
+	const maxLoadAttempts = 3;
 
 	// Scroll to top when component mounts
 	useEffect(() => {
@@ -92,6 +95,15 @@ const ListingDetailPage = () => {
 				console.error("❌ Error loading listing:", error);
 				if (error.message?.includes('fetch') || error.message?.includes('network')) {
 					setNetworkError(error);
+					
+					// Încercăm să reîncărcăm automat de câteva ori
+					if (loadAttempts < maxLoadAttempts) {
+						console.log(`🔄 Încercare automată de reîncărcare (${loadAttempts + 1}/${maxLoadAttempts})...`);
+						setLoadAttempts(prev => prev + 1);
+						setTimeout(() => {
+							loadListing(listingId);
+						}, 2000); // Așteptăm 2 secunde între încercări
+					}
 				} else {
 					setError("Nu s-a putut încărca anunțul");
 				}
@@ -105,6 +117,7 @@ const ListingDetailPage = () => {
 			}
 
 			console.log("✅ Listing loaded successfully:", data);
+			setLoadAttempts(0); // Resetăm contorul de încercări
 
 			// Obținem detalii despre vânzător
 			const { data: sellerData, error: sellerError } = await supabase
@@ -248,13 +261,32 @@ const ListingDetailPage = () => {
 		navigate(`/profil/${listing.seller.id}`);
 	};
 
+	const handleRetry = () => {
+		if (id) {
+			loadListing(id);
+		}
+	};
+
 	// Loading state
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="bg-white p-8 rounded-2xl shadow-lg text-center">
+				<div className="bg-white p-8 rounded-2xl shadow-lg text-center loading-indicator">
 					<div className="w-16 h-16 border-4 border-nexar-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
 					<p className="text-gray-600">Se încarcă anunțul...</p>
+					{loadAttempts > 0 && (
+						<p className="text-sm text-gray-500 mt-2">
+							Încercare {loadAttempts}/{maxLoadAttempts}...
+						</p>
+					)}
+					{loadAttempts >= 2 && (
+						<button
+							onClick={() => forceReconnect()}
+							className="mt-4 bg-nexar-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-nexar-gold transition-colors"
+						>
+							Forțează reconectarea
+						</button>
+					)}
 				</div>
 			</div>
 		);
@@ -266,7 +298,7 @@ const ListingDetailPage = () => {
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
 				<NetworkErrorHandler 
 					error={networkError} 
-					onRetry={() => id && loadListing(id)} 
+					onRetry={handleRetry} 
 				/>
 			</div>
 		);

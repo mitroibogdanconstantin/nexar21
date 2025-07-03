@@ -7,7 +7,8 @@ class SupabaseReconnectManager {
   private isVisible: boolean = true;
   private reconnectTimeout: number | null = null;
   private lastActiveTime: number = Date.now();
-  private readonly INACTIVITY_THRESHOLD = 30000; // 30 secunde
+  private readonly INACTIVITY_THRESHOLD = 5000; // 5 secunde - redus pentru a fi mai reactiv
+  private readonly CHECK_INTERVAL = 2000; // 2 secunde
 
   constructor() {
     this.init();
@@ -21,6 +22,13 @@ class SupabaseReconnectManager {
     document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
     window.addEventListener('focus', this.handleWindowFocus.bind(this));
     window.addEventListener('blur', this.handleWindowBlur.bind(this));
+    
+    // Verificăm periodic conexiunea când pagina este vizibilă
+    setInterval(() => {
+      if (this.isVisible) {
+        this.checkConnectionStatus();
+      }
+    }, this.CHECK_INTERVAL);
     
     console.log('🔄 Supabase Reconnect Manager inițializat');
   }
@@ -66,7 +74,8 @@ class SupabaseReconnectManager {
         console.log(`⏱️ Au trecut ${Math.round(timeSinceLastActive / 1000)} secunde de inactivitate, reconectăm...`);
         this.reconnectToSupabase();
       } else {
-        console.log(`⏱️ Au trecut doar ${Math.round(timeSinceLastActive / 1000)} secunde, nu este necesară reconectarea`);
+        console.log(`⏱️ Au trecut doar ${Math.round(timeSinceLastActive / 1000)} secunde, verificăm conexiunea...`);
+        this.checkConnectionStatus();
       }
     }
     
@@ -89,6 +98,33 @@ class SupabaseReconnectManager {
     
     // Salvăm timpul când utilizatorul a părăsit tab-ul
     this.lastActiveTime = Date.now();
+  }
+
+  /**
+   * Verifică starea conexiunii și reconectează dacă este necesar
+   */
+  private async checkConnectionStatus() {
+    try {
+      // Facem o cerere simplă pentru a verifica conexiunea
+      const { error } = await supabase
+        .from('profiles')
+        .select('count', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error('❌ Eroare la verificarea conexiunii:', error);
+        // Dacă avem eroare, încercăm să reconectăm
+        this.reconnectToSupabase();
+        return false;
+      }
+      
+      // Conexiunea este OK
+      return true;
+    } catch (error) {
+      console.error('💥 Eroare la verificarea conexiunii:', error);
+      // Încercăm să reconectăm
+      this.reconnectToSupabase();
+      return false;
+    }
   }
 
   /**
@@ -128,25 +164,11 @@ class SupabaseReconnectManager {
   }
 
   /**
-   * Verifică starea conexiunii și reconectează dacă este necesar
+   * Forțează o reconectare imediată
    */
-  async checkConnection() {
-    try {
-      // Verificăm dacă putem face o cerere simplă
-      const { error } = await supabase
-        .from('profiles')
-        .select('count', { count: 'exact', head: true });
-      
-      if (error) {
-        console.error('❌ Eroare la verificarea conexiunii:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('💥 Eroare la verificarea conexiunii:', error);
-      return false;
-    }
+  forceReconnect() {
+    console.log('🔄 Forțăm reconectarea la Supabase...');
+    this.reconnectToSupabase();
   }
 }
 
@@ -156,6 +178,10 @@ export const supabaseReconnect = new SupabaseReconnectManager();
 // Funcție pentru a forța o reconectare manuală
 export const forceReconnect = () => {
   console.log('🔄 Forțăm reconectarea la Supabase...');
-  supabase.auth.refreshSession();
+  supabaseReconnect.forceReconnect();
+};
+
+// Funcție pentru a reîncărca datele curente
+export const reloadCurrentData = () => {
   window.dispatchEvent(new CustomEvent('supabase-reconnected'));
 };
