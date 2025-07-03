@@ -61,14 +61,43 @@ const ProfilePage = () => {
 	const [filteredCities, setFilteredCities] = useState<string[]>([]);
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [networkError, setNetworkError] = useState<any>(null);
 
 	useEffect(() => {
 		loadProfile();
+
+		// Adăugăm un listener pentru evenimentul de reconectare
+		const handleReconnect = () => {
+			console.log('🔄 Reconectare detectată, reîncărcăm profilul...');
+			loadProfile();
+		};
+
+		window.addEventListener('supabase-reconnected', handleReconnect);
+		
+		// Adăugăm un listener pentru când tab-ul devine vizibil din nou
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				console.log('👁️ Tab-ul a devenit vizibil, verificăm dacă trebuie să reîncărcăm profilul...');
+				// Reîncărcăm profilul doar dacă avem o eroare sau dacă nu avem profil
+				if (error || networkError || !profile) {
+					loadProfile();
+				}
+			}
+		};
+		
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		return () => {
+			window.removeEventListener('supabase-reconnected', handleReconnect);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
 	}, [id]);
+
 	const loadProfile = async () => {
 		try {
 			setIsLoading(true); // 🔁 Începe încărcarea
 			setError(null);
+			setNetworkError(null);
 
 			const {
 				data: { user: currentUser },
@@ -91,7 +120,11 @@ const ProfilePage = () => {
 
 			if (profileError) {
 				console.error("❌ Eroare la încărcarea profilului:", profileError);
-				setError("Profilul nu a fost găsit.");
+				if (profileError.message?.includes('fetch') || profileError.message?.includes('network')) {
+					setNetworkError(profileError);
+				} else {
+					setError("Profilul nu a fost găsit.");
+				}
 				return;
 			}
 
@@ -100,9 +133,13 @@ const ProfilePage = () => {
 			setEditedProfile(profileData);
 
 			await loadUserListings(profileData.id);
-		} catch (err) {
+		} catch (err: any) {
 			console.error("💥 Eroare la încărcarea profilului:", err);
-			setError("A apărut o eroare la încărcarea profilului.");
+			if (err.message?.includes('fetch') || err.message?.includes('network')) {
+				setNetworkError(err);
+			} else {
+				setError("A apărut o eroare la încărcarea profilului.");
+			}
 		} finally {
 			setIsLoading(false); // ✅ Asta lipsea! Setează false când s-a terminat.
 			console.log("✅ Profilul a fost procesat complet.");
@@ -442,6 +479,33 @@ const ProfilePage = () => {
 				<div className="bg-white p-8 rounded-2xl shadow-lg text-center">
 					<div className="w-16 h-16 border-4 border-nexar-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
 					<p className="text-gray-600">Se încarcă profilul...</p>
+				</div>
+			</div>
+		);
+	}
+
+	// Network error state
+	if (networkError) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+				<div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
+					<AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+					<h2 className="text-2xl font-bold text-gray-900 mb-2">
+						Problemă de Conectivitate
+					</h2>
+					<p className="text-gray-600 mb-6">
+						Nu ne putem conecta la server pentru a încărca profilul. Acest lucru poate fi cauzat de o problemă temporară de rețea.
+					</p>
+					<div className="flex flex-col sm:flex-row gap-4">
+						<button
+							onClick={loadProfile}
+							className="bg-nexar-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-nexar-gold transition-colors flex items-center justify-center space-x-2"
+						>
+							<RefreshCw className="h-5 w-5" />
+							<span>Încearcă din nou</span>
+						</button>
+						<FixSupabaseButton buttonText="Repară Conexiunea" />
+					</div>
 				</div>
 			</div>
 		);

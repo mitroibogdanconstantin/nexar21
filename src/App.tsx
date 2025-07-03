@@ -21,6 +21,8 @@ import FixSupabasePage from "./pages/FixSupabasePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import ReconnectHandler from "./components/ReconnectHandler";
+import { supabaseReconnect } from "./lib/supabase-reconnect";
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -34,6 +36,12 @@ function ScrollToTop() {
 }
 
 function App() {
+	// Inițializăm managerul de reconectare
+	useEffect(() => {
+		// Asigurăm-ne că supabaseReconnect este inițializat
+		console.log('🔄 Inițializare manager reconectare în App');
+	}, []);
+
 	return (
 		<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
 			<ScrollToTop />
@@ -63,6 +71,7 @@ function App() {
 					</Routes>
 				</main>
 				<Footer />
+				<ReconnectHandler />
 			</div>
 		</Router>
 	);

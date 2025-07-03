@@ -46,6 +46,36 @@ const ListingDetailPage = () => {
 		if (id) {
 			loadListing(id);
 		}
+
+		// Adăugăm un listener pentru evenimentul de reconectare
+		const handleReconnect = () => {
+			console.log('🔄 Reconectare detectată, reîncărcăm anunțul...');
+			if (id) {
+				loadListing(id);
+			}
+		};
+
+		window.addEventListener('supabase-reconnected', handleReconnect);
+		
+		// Adăugăm un listener pentru când tab-ul devine vizibil din nou
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				console.log('👁️ Tab-ul a devenit vizibil, verificăm dacă trebuie să reîncărcăm anunțul...');
+				// Reîncărcăm anunțul doar dacă avem o eroare sau dacă nu avem anunț
+				if (error || networkError || !listing) {
+					if (id) {
+						loadListing(id);
+					}
+				}
+			}
+		};
+		
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		return () => {
+			window.removeEventListener('supabase-reconnected', handleReconnect);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
 	}, [id]);
 
 	const loadListing = async (listingId: string) => {
