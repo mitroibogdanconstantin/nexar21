@@ -245,141 +245,6 @@ const HomePage = () => {
     window.scrollTo(0, 0);
   };
 
-  const ListingRow = ({ listing }: { listing: any }) => (
-    <Link
-      to={`/anunt/${listing.id}`}
-      className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group border border-gray-100 block"
-    >
-      <div className="flex flex-col sm:flex-row">
-        <div className="relative w-full sm:w-64 flex-shrink-0">
-          <img
-            loading="lazy"
-            src={listing.image}
-            alt={listing.title}
-            className="w-full h-48 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              // Fallback la imagine placeholder dacă imaginea nu se încarcă
-              const target = e.currentTarget as HTMLImageElement;
-              target.src = "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg";
-            }}
-          />
-          <div className="absolute top-3 left-3">
-            <span className="bg-nexar-accent text-white px-3 py-1 rounded-full text-xs font-semibold">
-              {listing.category}
-            </span>
-          </div>
-        </div>
-        
-        <div className="flex-1 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-nexar-accent transition-colors mb-2">
-                {listing.brand} {listing.model}
-              </h3>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">€{listing.price.toLocaleString()}</div>
-              
-              {/* EVIDENȚIERE DEALER MULT MAI PRONUNȚATĂ */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                <div className="text-sm text-gray-600">
-                  Vândut de: 
-                  <button 
-                    onClick={(e) => handleSellerClick(e, listing.sellerId)}
-                    className="font-semibold text-nexar-accent hover:text-nexar-gold transition-colors ml-1 underline"
-                  >
-                    {listing.seller}
-                  </button>
-                </div>
-                
-                {/* BADGE DEALER MULT MAI VIZIBIL */}
-                {listing.sellerType === 'dealer' ? (
-                  <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1.5 rounded-full shadow-md border border-emerald-400">
-                    <Building className="h-3 w-3" />
-                    <span className="font-bold text-xs tracking-wide">DEALER VERIFICAT</span>
-                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-slate-500 to-slate-600 text-white px-3 py-1.5 rounded-full shadow-md">
-                    <User className="h-3 w-3" />
-                    <span className="font-semibold text-xs">PRIVAT</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Availability Badge - Only for dealers */}
-              {listing.sellerType === 'dealer' && (
-                <div className="mt-1">
-                  <span className={`px-2 py-1 inline-flex items-center text-xs leading-4 font-medium rounded-full ${
-                    listing.availability === "pe_stoc" 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-blue-100 text-blue-800"
-                  }`}>
-                    {listing.availability === "pe_stoc" ? (
-                      <>
-                        <Store className="h-3 w-3 mr-1" />
-                        Pe stoc
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="h-3 w-3 mr-1" />
-                        La comandă
-                      </>
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Detailed Information Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Locație:</span>
-              <span className="font-semibold text-gray-900">{listing.location}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Stare:</span>
-              <span className="font-semibold text-gray-900">{listing.condition}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Vânzător:</span>
-              <span className="font-semibold text-gray-900">{listing.sellerType === 'individual' ? 'Individual' : 'Dealer'}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Kilometraj:</span>
-              <span className="font-semibold text-gray-900">{listing.mileage.toLocaleString()} km</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Transmisie:</span>
-              <span className="font-semibold text-gray-900">{listing.transmission}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Combustibil:</span>
-              <span className="font-semibold text-gray-900">{listing.fuel}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Motor:</span>
-              <span className="font-semibold text-gray-900">{listing.engine} cc</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">An:</span>
-              <span className="font-semibold text-gray-900">{listing.year}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Vândut de: <span className="font-semibold text-gray-700">{listing.seller}</span>
-            </div>
-            
-            <div className="bg-nexar-accent text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-nexar-gold transition-colors inline-flex items-center space-x-2">
-              <span>Vezi Detalii</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-
   if (networkError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -392,55 +257,77 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-            Toate Anunțurile
-          </h1>
-          <p className="text-gray-600">
-            Descoperă {filteredListings.length} motociclete disponibile pentru vânzare
-          </p>
-        </div>
-
-        {/* Search Bar - Single, prominent */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
-          <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Caută după marcă, model, categorie, locație sau vânzător..."
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-nexar-accent focus:border-transparent text-base"
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-nexar-accent to-nexar-gold rounded-2xl overflow-hidden shadow-lg mb-8">
+          <div className="relative py-12 px-6 sm:px-12 text-white">
+            <div className="relative z-10">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+                Nexar
+              </h1>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-6">
+                Cumpără și Vinde Motociclete
+                <span className="ml-2 bg-white text-nexar-accent px-2 py-1 rounded-full text-sm font-bold">
+                  GRATUIT
+                </span>
+              </h2>
+              <div className="max-w-xl">
+                <form onSubmit={handleSearch} className="flex">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Caută după marcă, model sau tip..."
+                    className="flex-1 py-3 px-4 rounded-l-lg text-gray-800 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-gray-900 hover:bg-black text-white py-3 px-6 rounded-r-lg font-semibold transition-colors"
+                  >
+                    Caută
+                  </button>
+                </form>
+                <div className="mt-6">
+                  <Link
+                    to="/adauga-anunt"
+                    className="bg-white text-nexar-accent hover:bg-gray-100 py-3 px-6 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
+                  >
+                    <span>Vinde Motocicleta Ta</span>
+                  </Link>
+                </div>
               </div>
             </div>
-            
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="bg-nexar-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-nexar-gold transition-colors flex items-center space-x-2"
+            {/* Background pattern */}
+            <div className="absolute top-0 right-0 w-1/2 h-full opacity-20">
+              <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 400 400"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <Search className="h-4 w-4" />
-                <span>Caută</span>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span>{showFilters ? 'Ascunde' : 'Arată'} Filtrele</span>
-              </button>
+                <defs>
+                  <pattern
+                    id="smallGrid"
+                    width="20"
+                    height="20"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 20 0 L 0 0 0 20"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="1"
+                    />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#smallGrid)" />
+              </svg>
             </div>
-          </form>
+          </div>
         </div>
 
+        {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar */}
           {showFilters && (
@@ -710,30 +597,45 @@ const HomePage = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Results */}
-            <div className="mb-5">
-              <div className="flex justify-between items-center">
-                <p className="text-gray-600">
-                  {isLoading ? (
-                    <span>Se încarcă anunțurile...</span>
-                  ) : (
-                    <>
-                      Afișez <span className="font-semibold">{filteredListings.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredListings.length)}</span> din <span className="font-semibold">{filteredListings.length}</span> rezultate
-                      {searchQuery && (
-                        <span className="ml-2 text-nexar-accent">
-                          pentru "{searchQuery}"
-                        </span>
-                      )}
-                    </>
-                  )}
-                </p>
-                <select className="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-nexar-accent focus:border-transparent">
-                  <option>Sortează după: Cel mai recent</option>
-                  <option>Preț: Crescător</option>
-                  <option>Preț: Descrescător</option>
-                  <option>An: Cel mai nou</option>
-                  <option>Kilometraj: Cel mai mic</option>
-                </select>
+            {/* Results Header */}
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+              <div className="flex flex-col lg:flex-row gap-4 justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Toate Anunțurile</h2>
+                  <p className="text-gray-600">
+                    {isLoading ? (
+                      <span>Se încarcă anunțurile...</span>
+                    ) : (
+                      <>
+                        Afișez <span className="font-semibold">{filteredListings.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredListings.length)}</span> din <span className="font-semibold">{filteredListings.length}</span> rezultate
+                        {searchQuery && (
+                          <span className="ml-2 text-nexar-accent">
+                            pentru "{searchQuery}"
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    <span>{showFilters ? 'Ascunde' : 'Arată'} Filtrele</span>
+                  </button>
+                  
+                  <select className="border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-nexar-accent focus:border-transparent">
+                    <option>Sortează după: Cel mai recent</option>
+                    <option>Preț: Crescător</option>
+                    <option>Preț: Descrescător</option>
+                    <option>An: Cel mai nou</option>
+                    <option>Kilometraj: Cel mai mic</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -799,7 +701,139 @@ const HomePage = () => {
             {!isLoading && !error && filteredListings.length > 0 && (
               <div className="space-y-4">
                 {currentListings.map((listing) => (
-                  <ListingRow key={listing.id} listing={listing} />
+                  <Link
+                    key={listing.id}
+                    to={`/anunt/${listing.id}`}
+                    className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group border border-gray-100 block"
+                  >
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="relative w-full sm:w-64 flex-shrink-0">
+                        <img
+                          loading="lazy"
+                          src={listing.image}
+                          alt={listing.title}
+                          className="w-full h-48 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            // Fallback la imagine placeholder dacă imaginea nu se încarcă
+                            const target = e.currentTarget as HTMLImageElement;
+                            target.src = "https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg";
+                          }}
+                        />
+                        <div className="absolute top-3 left-3">
+                          <span className="bg-nexar-accent text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            {listing.category}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
+                          <div>
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-nexar-accent transition-colors mb-2">
+                              {listing.brand} {listing.model}
+                            </h3>
+                            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">€{listing.price.toLocaleString()}</div>
+                            
+                            {/* EVIDENȚIERE DEALER MULT MAI PRONUNȚATĂ */}
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                              <div className="text-sm text-gray-600">
+                                Vândut de: 
+                                <button 
+                                  onClick={(e) => handleSellerClick(e, listing.sellerId)}
+                                  className="font-semibold text-nexar-accent hover:text-nexar-gold transition-colors ml-1 underline"
+                                >
+                                  {listing.seller}
+                                </button>
+                              </div>
+                              
+                              {/* BADGE DEALER MULT MAI VIZIBIL */}
+                              {listing.sellerType === 'dealer' ? (
+                                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1.5 rounded-full shadow-md border border-emerald-400">
+                                  <Building className="h-3 w-3" />
+                                  <span className="font-bold text-xs tracking-wide">DEALER VERIFICAT</span>
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                                </div>
+                              ) : (
+                                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-slate-500 to-slate-600 text-white px-3 py-1.5 rounded-full shadow-md">
+                                  <User className="h-3 w-3" />
+                                  <span className="font-semibold text-xs">PRIVAT</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Availability Badge - Only for dealers */}
+                            {listing.sellerType === 'dealer' && (
+                              <div className="mt-1">
+                                <span className={`px-2 py-1 inline-flex items-center text-xs leading-4 font-medium rounded-full ${
+                                  listing.availability === "pe_stoc" 
+                                    ? "bg-green-100 text-green-800" 
+                                    : "bg-blue-100 text-blue-800"
+                                }`}>
+                                  {listing.availability === "pe_stoc" ? (
+                                    <>
+                                      <Store className="h-3 w-3 mr-1" />
+                                      Pe stoc
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      La comandă
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Detailed Information Grid */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Locație:</span>
+                            <span className="font-semibold text-gray-900">{listing.location}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Stare:</span>
+                            <span className="font-semibold text-gray-900">{listing.condition}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Vânzător:</span>
+                            <span className="font-semibold text-gray-900">{listing.sellerType === 'individual' ? 'Individual' : 'Dealer'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Kilometraj:</span>
+                            <span className="font-semibold text-gray-900">{listing.mileage.toLocaleString()} km</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Transmisie:</span>
+                            <span className="font-semibold text-gray-900">{listing.transmission}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Combustibil:</span>
+                            <span className="font-semibold text-gray-900">{listing.fuel}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Motor:</span>
+                            <span className="font-semibold text-gray-900">{listing.engine} cc</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">An:</span>
+                            <span className="font-semibold text-gray-900">{listing.year}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-gray-600">
+                            Vândut de: <span className="font-semibold text-gray-700">{listing.seller}</span>
+                          </div>
+                          
+                          <div className="bg-nexar-accent text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-nexar-gold transition-colors inline-flex items-center space-x-2">
+                            <span>Vezi Detalii</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}

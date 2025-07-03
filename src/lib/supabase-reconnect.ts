@@ -6,6 +6,8 @@ import { supabase } from './supabase';
 class SupabaseReconnectManager {
   private isVisible: boolean = true;
   private reconnectTimeout: number | null = null;
+  private lastActiveTime: number = Date.now();
+  private readonly INACTIVITY_THRESHOLD = 30000; // 30 secunde
 
   constructor() {
     this.init();
@@ -55,8 +57,21 @@ class SupabaseReconnectManager {
     if (!this.isVisible) {
       console.log('📱 Tab-ul a devenit vizibil, verificăm conexiunea Supabase...');
       this.isVisible = true;
-      this.reconnectToSupabase();
+      
+      // Verificăm dacă a trecut suficient timp pentru a necesita o reconectare
+      const currentTime = Date.now();
+      const timeSinceLastActive = currentTime - this.lastActiveTime;
+      
+      if (timeSinceLastActive > this.INACTIVITY_THRESHOLD) {
+        console.log(`⏱️ Au trecut ${Math.round(timeSinceLastActive / 1000)} secunde de inactivitate, reconectăm...`);
+        this.reconnectToSupabase();
+      } else {
+        console.log(`⏱️ Au trecut doar ${Math.round(timeSinceLastActive / 1000)} secunde, nu este necesară reconectarea`);
+      }
     }
+    
+    // Actualizăm timpul de activitate
+    this.lastActiveTime = Date.now();
   }
 
   /**
@@ -71,6 +86,9 @@ class SupabaseReconnectManager {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
+    
+    // Salvăm timpul când utilizatorul a părăsit tab-ul
+    this.lastActiveTime = Date.now();
   }
 
   /**
@@ -106,6 +124,28 @@ class SupabaseReconnectManager {
       }
     } catch (error) {
       console.error('💥 Eroare neașteptată la reconectare:', error);
+    }
+  }
+
+  /**
+   * Verifică starea conexiunii și reconectează dacă este necesar
+   */
+  async checkConnection() {
+    try {
+      // Verificăm dacă putem face o cerere simplă
+      const { error } = await supabase
+        .from('profiles')
+        .select('count', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error('❌ Eroare la verificarea conexiunii:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('💥 Eroare la verificarea conexiunii:', error);
+      return false;
     }
   }
 }
