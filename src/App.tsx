@@ -21,8 +21,7 @@ import FixSupabasePage from "./pages/FixSupabasePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
-import ReconnectHandler from "./components/ReconnectHandler";
-import { supabaseReconnect } from "./lib/supabase-reconnect";
+import TabVisibilityHandler from "./components/TabVisibilityHandler";
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -36,10 +35,12 @@ function ScrollToTop() {
 }
 
 function App() {
-	// Inițializăm managerul de reconectare
+	// Inițializăm managerul de vizibilitate a tab-urilor
 	useEffect(() => {
-		// Asigurăm-ne că supabaseReconnect este inițializat
-		console.log('🔄 Inițializare manager reconectare în App');
+		// Importăm managerul de vizibilitate a tab-urilor
+		import('./lib/tab-visibility-handler').then(({ tabVisibilityHandler }) => {
+			console.log('🔍 Tab Visibility Handler inițializat în App');
+		});
 	}, []);
 
 	return (
@@ -71,7 +72,7 @@ function App() {
 					</Routes>
 				</main>
 				<Footer />
-				<ReconnectHandler />
+				<TabVisibilityHandler />
 			</div>
 		</Router>
 	);

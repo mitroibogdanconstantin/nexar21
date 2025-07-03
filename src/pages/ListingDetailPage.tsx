@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { listings, supabase } from "../lib/supabase";
 import NetworkErrorHandler from "../components/NetworkErrorHandler";
-import { forceReconnect } from "../lib/supabase-reconnect";
+import { forceReconnect } from "../lib/tab-visibility-handler";
 
 const ListingDetailPage = () => {
 	const { id } = useParams();
@@ -41,6 +41,7 @@ const ListingDetailPage = () => {
 	const [networkError, setNetworkError] = useState<any>(null);
 	const [loadAttempts, setLoadAttempts] = useState(0);
 	const maxLoadAttempts = 3;
+	const loadingTimerRef = useRef<number | null>(null);
 
 	// Scroll to top when component mounts
 	useEffect(() => {
@@ -50,34 +51,45 @@ const ListingDetailPage = () => {
 			loadListing(id);
 		}
 
-		// Adăugăm un listener pentru evenimentul de reconectare
-		const handleReconnect = () => {
-			console.log('🔄 Reconectare detectată, reîncărcăm anunțul...');
-			if (id) {
+		// Adăugăm un listener pentru evenimentul de schimbare a vizibilității tab-ului
+		const handleTabVisibilityChange = (event: CustomEvent) => {
+			console.log('👁️ Eveniment de schimbare a vizibilității tab-ului detectat:', event.detail);
+			if (event.detail?.visible && id) {
+				console.log('🔄 Tab-ul a devenit vizibil, reîncărcăm anunțul...');
 				loadListing(id);
 			}
 		};
 
-		window.addEventListener('supabase-reconnected', handleReconnect);
-		
 		// Adăugăm un listener pentru când tab-ul devine vizibil din nou
 		const handleVisibilityChange = () => {
-			if (document.visibilityState === 'visible') {
+			if (document.visibilityState === 'visible' && id) {
 				console.log('👁️ Tab-ul a devenit vizibil, verificăm dacă trebuie să reîncărcăm anunțul...');
 				// Reîncărcăm anunțul doar dacă avem o eroare sau dacă nu avem anunț
 				if (error || networkError || !listing) {
-					if (id) {
-						loadListing(id);
-					}
+					loadListing(id);
 				}
 			}
 		};
 		
+		window.addEventListener('tab-visibility-change', handleTabVisibilityChange as EventListener);
 		document.addEventListener('visibilitychange', handleVisibilityChange);
 
+		// Setăm un timer pentru a detecta dacă încărcarea durează prea mult
+		loadingTimerRef.current = window.setTimeout(() => {
+			if (isLoading && !listing) {
+				console.log('⚠️ Încărcarea anunțului durează prea mult, forțăm reconectarea...');
+				forceReconnect();
+			}
+		}, 10000); // 10 secunde
+
 		return () => {
-			window.removeEventListener('supabase-reconnected', handleReconnect);
+			window.removeEventListener('tab-visibility-change', handleTabVisibilityChange as EventListener);
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			
+			// Curățăm timer-ul la demontare
+			if (loadingTimerRef.current) {
+				clearTimeout(loadingTimerRef.current);
+			}
 		};
 	}, [id]);
 
@@ -186,6 +198,12 @@ const ListingDetailPage = () => {
 			}
 		} finally {
 			setIsLoading(false);
+			
+			// Curățăm timer-ul de încărcare
+			if (loadingTimerRef.current) {
+				clearTimeout(loadingTimerRef.current);
+				loadingTimerRef.current = null;
+			}
 		}
 	};
 
@@ -284,7 +302,7 @@ const ListingDetailPage = () => {
 							onClick={() => forceReconnect()}
 							className="mt-4 bg-nexar-accent text-white px-4 py-2 rounded-lg text-sm hover:bg-nexar-gold transition-colors"
 						>
-							Forțează reconectarea
+							Forțează reîncărcarea
 						</button>
 					)}
 				</div>
