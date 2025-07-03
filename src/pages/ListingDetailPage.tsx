@@ -394,19 +394,21 @@ const ListingDetailPage = () => {
 								onTouchMove={handleTouchMove}
 								onTouchEnd={handleTouchEnd}
 							>
-								<img
-									src={
-										listing.imagesThumbs?.[currentImageIndex] ||
-										listing.images[currentImageIndex]
-									}
-									alt={listing.title}
-									className="w-full h-96 object-contain"
-									onError={(e) => {
-										const target = e.currentTarget;
-										target.src =
-											"https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg";
-									}}
-								/>
+								<div className="w-full h-64 sm:h-96 flex items-center justify-center bg-gray-100">
+									<img
+										src={
+											listing.imagesThumbs?.[currentImageIndex] ||
+											listing.images[currentImageIndex]
+										}
+										alt={listing.title}
+										className="max-h-full max-w-full object-contain"
+										onError={(e) => {
+											const target = e.currentTarget;
+											target.src =
+												"https://images.pexels.com/photos/2116475/pexels-photo-2116475.jpeg";
+										}}
+									/>
+								</div>
 
 								{listing.featured && (
 									<div className="absolute top-3 sm:top-4 left-3 sm:left-4">
